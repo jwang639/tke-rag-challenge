@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>THSS RAG Chat</title>
+
+<style>
+
+body{
+    font-family:Arial;
+    width:900px;
+    margin:20px auto;
+}
+
+#chat{
+    border:1px solid #ccc;
+    height:600px;
+    overflow:auto;
+    padding:10px;
+}
+
+textarea{
+    width:100%;
+    height:100px;
+}
+
+button{
+    margin-top:10px;
+}
+
+.msg{
+    margin-bottom:20px;
+}
+
+.source{
+    margin-left:20px;
+    font-size:14px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Tsinghua Software School RAG</h2>
+
+<div id="chat"></div>
+
+<textarea id="question"></textarea>
+
+<button onclick="ask()">Send</button>
+
+<script>
+
+async function ask(){
+
+    let q=document.getElementById("question").value
+
+    if(!q){
+        return
+    }
+
+    let chat=document.getElementById("chat")
+
+    chat.innerHTML +=
+        "<div class='msg'><b>You:</b><br>"+q+"</div>"
+
+    let r=await fetch(
+        "/chat",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                question:q
+            })
+        }
+    )
+
+    let data=await r.json()
+
+    let html=
+        "<div class='msg'><b>Assistant:</b><br>"
+        +data.answer+
+        "</div>"
+
+    if(data.sources){
+
+        html += "<div><b>Sources:</b></div>"
+
+        data.sources.forEach(function(s){
+
+            html +=
+            "<div class='source'>"
+            +"<a href='"+s.url+"' target='_blank'>"
+            +s.title
+            +"</a>"
+            +"</div>"
+        })
+    }
+
+    chat.innerHTML += html
+
+    document.getElementById("question").value=""
+
+    chat.scrollTop=chat.scrollHeight
+}
+
+</script>
+
+</body>
+</html>

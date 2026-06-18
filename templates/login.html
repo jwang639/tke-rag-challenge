@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Tsinghua Software RAG Login</title>
+
+<style>
+body{
+    font-family:Arial;
+    width:400px;
+    margin:100px auto;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+}
+
+button{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>THSS RAG Login</h2>
+
+<input id="username" placeholder="username">
+<input id="password" type="password" placeholder="password">
+
+<button onclick="login()">Login</button>
+
+<p id="msg"></p>
+
+<script>
+
+async function login(){
+
+    let r = await fetch(
+        "/login",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                username:document.getElementById("username").value,
+                password:document.getElementById("password").value
+            })
+        }
+    )
+
+    let data = await r.json()
+
+    if(data.success){
+        location.href="/chat-ui"
+    }else{
+        document.getElementById("msg").innerText=data.error
+    }
+}
+
+</script>
+
+</body>
+</html>
