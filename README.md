@@ -1,246 +1,230 @@
-THSS RAG Chatbot
+# TKE-RAG-Challenge
 
-基于清华大学软件学院官网构建的检索增强生成（RAG）问答系统。
+基于 Flask + FAISS + SentenceTransformer + Ollama 的本地知识库问答系统。
 
-本项目为 TKE Interview Lab RAG Challenge 实现，支持全站内容检索、引用溯源、登录认证以及 Web 聊天界面。
+## 项目简介
 
-⸻
+本项目实现了一个完整的 RAG（Retrieval-Augmented Generation）知识库问答系统。
 
-项目功能
+系统以清华大学软件学院新闻数据为知识来源，通过爬虫采集数据、构建向量索引、检索相关文档，并结合本地大语言模型生成答案。
 
-* 清华大学软件学院官网内容爬取
-* 新闻文章解析与清洗
-* 文本 Chunk 切分
-* 向量化 Embedding
-* FAISS 向量检索
-* Ollama 本地大模型问答
-* 登录认证保护
-* 来源引用展示
-* HTTPS 部署
-* Gunicorn + Nginx 生产部署
+主要功能：
 
-⸻
+- 知识库问答
+- 来源追溯
+- 本地模型推理
+- 登录认证
+- Web界面访问
 
-系统架构
+---
 
-清华大学软件学院官网
-           │
-           ▼
-      爬虫采集
-           │
-           ▼
-      数据清洗
-           │
-           ▼
-      Chunk切分
-           │
-           ▼
-Embedding模型
-(multilingual-e5-small)
-           │
-           ▼
-      FAISS索引
-           │
-           ▼
-      Retriever
-           │
-           ▼
-      Ollama
-      Qwen3:4B
-           │
-           ▼
-      Web Chat
+## 技术架构
 
-⸻
+```text
+Browser
+    │
+    ▼
+Nginx (HTTPS)
+    │
+    ▼
+Gunicorn
+    │
+    ▼
+Flask
+    │
+    ├── FAISS
+    ├── SentenceTransformer
+    └── Ollama(Qwen2.5:1.5B)
+```
 
-技术栈
+---
 
-后端
+## 技术栈
 
-* Flask
-* Gunicorn
-* Requests
+### 后端
 
-检索
+- Python 3.10
+- Flask
+- Gunicorn
 
-* FAISS
-* Sentence Transformers
-* multilingual-e5-small
+### 向量检索
 
-大模型
+- SentenceTransformer
+- FAISS
 
-* Ollama
-* Qwen3:4B
+### 大模型
 
-部署
+- Ollama
+- Qwen2.5:1.5B
 
-* Ubuntu Linux
-* Nginx
-* systemd
+### 部署
 
-⸻
+- Ubuntu 22.04
+- Nginx
+- Systemd
 
-项目目录
+---
 
-app.py
-crawler/
-├── discover_news.py
-└── crawl_news.py
-indexer/
-├── build_chunks.py
-├── build_index.py
-├── retriever.py
-├── rag.py
-├── llm.py
-data/
-├── chunks.json
-├── embeddings.npy
-├── faiss.index
-├── news_articles.json
-└── news_urls.json
-templates/
-├── login.html
-└── chat.html
+## 功能列表
 
-⸻
+### 用户功能
 
-环境安装
+- 登录认证
+- 知识库问答
+- 来源展示
+- 响应时间统计
 
-创建虚拟环境：
+### RAG能力
 
-python -m venv venv
-source venv/bin/activate
+- 文档切分
+- 文本向量化
+- Top-K召回
+- Prompt构建
+- LLM生成答案
+
+---
+
+## 项目结构
+
+```text
+rag/
+├── app.py
+├── crawler/
+│   ├── discover_news.py
+│   └── crawl_news.py
+├── data/
+│   ├── news_articles.json
+│   ├── chunks.json
+│   ├── embeddings.npy
+│   └── faiss.index
+├── indexer/
+│   ├── build_chunks.py
+│   ├── build_index.py
+│   ├── retriever.py
+│   ├── rag.py
+│   └── llm.py
+├── templates/
+│   ├── login.html
+│   └── chat.html
+└── requirements.txt
+```
+
+---
+
+## 启动方式
 
 安装依赖：
 
+```bash
 pip install -r requirements.txt
+```
 
-⸻
+启动 Ollama：
 
-启动方式
+```bash
+ollama serve
+```
 
-开发模式：
+拉取模型：
 
-python app.py
+```bash
+ollama pull qwen2.5:1.5b
+```
 
-生产模式：
+启动服务：
 
-gunicorn -w 1 -b 0.0.0.0:5000 app:app
+```bash
+gunicorn --workers 1 --bind 0.0.0.0:5000 app:app
+```
 
-⸻
+---
 
-登录账号
+## 检索流程
 
-演示账号：
+1. 用户输入问题
+2. SentenceTransformer生成向量
+3. FAISS检索Top-K文档
+4. 构造Prompt
+5. Ollama生成答案
+6. 返回答案及来源
 
-用户名：
+---
 
-admin
+## 性能优化
 
-密码：
+项目开发过程中完成以下优化：
 
-admin123
+- Qwen3:4B → Qwen2.5:1.5B
+- 检索上下文长度优化
+- Gunicorn超时优化
+- HTTPS部署
+- 前端响应时间展示
 
-⸻
+优化后平均响应时间：
 
-重建索引
+- 1~5秒
 
-如需重新抓取并生成索引：
+---
 
-发现新闻链接：
+## 项目难点
 
-python crawler/discover_news.py
+### 1. HTTPS访问异常
 
-抓取新闻正文：
+问题：
 
-python crawler/crawl_news.py
+- 页面访问后被重定向回原系统
 
-生成文本切片：
+解决：
 
-python indexer/build_chunks.py
+- 排查Nginx配置
+- 修正反向代理转发规则
 
-生成向量索引：
+### 2. 大模型响应时间过长
 
-python indexer/build_index.py
+问题：
 
-⸻
+- Qwen3:4B CPU推理超过5分钟
 
-部署说明
+解决：
 
-项目部署于 Ubuntu 服务器。
+- 更换Qwen2.5:1.5B
+- 缩减Prompt长度
+- 控制输出Token
 
-部署架构：
+优化后响应时间下降至秒级。
 
-Internet
-   │
-   ▼
- Nginx
-   │
-   ▼
-Gunicorn
-   │
-   ▼
- Flask
-   │
-   ▼
- RAG
+### 3. Gunicorn Worker Timeout
 
-系统使用 systemd 管理服务，实现开机自动启动。
+问题：
 
-⸻
+- Worker被超时杀死
 
-认证说明
+解决：
 
-未登录用户无法访问聊天页面及问答接口。
+- 调整timeout参数
+- 优化模型推理耗时
 
-认证流程：
+### 4. 前后端联调问题
 
-/login-ui
-      │
-      ▼
-用户名密码验证
-      │
-      ▼
-Session认证
-      │
-      ▼
-/chat-ui
+问题：
 
-⸻
+- 后端已返回答案
+- 页面无法正确渲染
 
-引用机制
+解决：
 
-系统在生成回答时会返回检索到的原始文章来源。
+- 使用Chrome DevTools定位
+- 修复前端JS渲染逻辑
 
-返回内容包含：
+---
 
-* 文章标题
-* 原始链接
-* 回答内容
+## Git分支策略
 
-用于保证回答可追溯性与可信度。
+- dev：开发环境
+- uat：测试环境
+- prd：生产环境
 
-⸻
+Tag：
 
-预构建索引
-
-为方便评审快速启动项目，仓库中包含以下预构建文件：
-
-data/chunks.json
-data/embeddings.npy
-data/faiss.index
-
-评审人员无需重新爬取网站即可直接运行系统。
-
-⸻
-
-已知限制
-
-* 当前使用 CPU 推理，响应速度较 GPU 环境慢
-* 当前使用单机 FAISS 索引
-* 未实现多轮对话记忆
-* 未实现流式输出
-
-⸻
-
-作者:Jiahao Wang
+- v1.0.0
+- v1.1.0
